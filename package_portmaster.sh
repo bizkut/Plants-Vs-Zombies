@@ -1,83 +1,94 @@
 #!/bin/bash
+# Package script for Portmaster submission
+# Creates the proper port structure per https://portmaster.games/packaging.html
 
-# Configuration
+set -e
+
+PORTNAME="plantsvsz"
+PORTSCRIPT="Plants Vs Zombies.sh"
 BUILD_DIR="build_portmaster"
-PACKAGE_DIR="pvz_portmaster"
-BINARY_NAME="pvz"
+OUTPUT_DIR="$PORTNAME"
 
-# Clean previous build
-rm -rf $BUILD_DIR $PACKAGE_DIR
+echo "=== Plants Vs Zombies Portmaster Packager ==="
 
-# Create directories
+# Step 1: Build the game
+echo "Step 1: Building game..."
 mkdir -p $BUILD_DIR
-mkdir -p $PACKAGE_DIR/pvz
-mkdir -p $PACKAGE_DIR/pvz/libs
-
-# Build
 cd $BUILD_DIR
 cmake .. -DCMAKE_BUILD_TYPE=Release
 make -j$(nproc)
 cd ..
 
-# Check if binary exists
-if [ -f "$BUILD_DIR/bin/pvz/$BINARY_NAME" ]; then
-    echo "Build successful!"
-else 
-    # Try looking in root build dir if not in bin/ (depends on cmake/cocos config)
-    if [ -f "$BUILD_DIR/$BINARY_NAME" ]; then
-         echo "Build successful (in root)!"
-    else
-        echo "Build failed. Binary not found."
-        exit 1
+# Check if build succeeded
+if [ ! -f "$BUILD_DIR/bin/pvz/pvz" ]; then
+    echo "ERROR: Build failed - binary not found at $BUILD_DIR/bin/pvz/pvz"
+    exit 1
+fi
+
+echo "Build successful!"
+
+# Step 2: Create Portmaster package structure
+echo "Step 2: Creating Portmaster package structure..."
+rm -rf "$OUTPUT_DIR"
+mkdir -p "$OUTPUT_DIR/$PORTNAME/libs"
+mkdir -p "$OUTPUT_DIR/$PORTNAME/licenses"
+
+# Copy port metadata files (goes in root portname folder)
+cp port.json "$OUTPUT_DIR/"
+cp README.md "$OUTPUT_DIR/"
+cp gameinfo.xml "$OUTPUT_DIR/"
+
+# Copy launch script with proper name
+cp launch.sh "$OUTPUT_DIR/$PORTSCRIPT"
+chmod +x "$OUTPUT_DIR/$PORTSCRIPT"
+
+# Copy game files to subfolder
+cp "$BUILD_DIR/bin/pvz/pvz" "$OUTPUT_DIR/$PORTNAME/"
+chmod +x "$OUTPUT_DIR/$PORTNAME/pvz"
+cp -r Resources "$OUTPUT_DIR/$PORTNAME/"
+cp game.gptk "$OUTPUT_DIR/$PORTNAME/"
+
+# Copy licenses
+cp licenses/* "$OUTPUT_DIR/$PORTNAME/licenses/"
+
+# Copy libraries (FMOD)
+if [ -f "cocos2d/external/linux-specific/fmod/prebuilt/arm64/libfmod.so" ]; then
+    cp cocos2d/external/linux-specific/fmod/prebuilt/arm64/libfmod.so "$OUTPUT_DIR/$PORTNAME/libs/"
+    echo "  - FMOD library copied"
+fi
+
+# Build and copy gl4es if not present
+if [ ! -f "$OUTPUT_DIR/$PORTNAME/libs/libGL.so.1" ]; then
+    echo "Step 3: Building gl4es..."
+    if [ -d "/tmp/gl4es" ]; then
+        rm -rf /tmp/gl4es
     fi
+    git clone --depth 1 https://github.com/ptitSeb/gl4es.git /tmp/gl4es
+    mkdir -p /tmp/gl4es/build
+    cd /tmp/gl4es/build
+    cmake .. -DNOX11=ON -DGLX_STUBS=ON -DEGL_WRAPPER=ON -DGBM=ON 2>/dev/null
+    make -j$(nproc) 2>/dev/null
+    cd -
+    cp /tmp/gl4es/lib/libGL.so.1 "$OUTPUT_DIR/$PORTNAME/libs/"
+    cp /tmp/gl4es/lib/libEGL.so.1 "$OUTPUT_DIR/$PORTNAME/libs/"
+    echo "  - gl4es libraries copied"
 fi
 
-# Locate binary
-if [ -f "$BUILD_DIR/bin/pvz/$BINARY_NAME" ]; then
-    CP_BIN="$BUILD_DIR/bin/pvz/$BINARY_NAME"
-else
-    CP_BIN="$BUILD_DIR/$BINARY_NAME"
-fi
+# Step 4: Create the zip file
+echo "Step 4: Creating zip package..."
+cd "$OUTPUT_DIR"
+zip -r "../${PORTNAME}.zip" .
+cd ..
 
-# Copy Files
-cp "$CP_BIN" "$PACKAGE_DIR/pvz/"
-cp -r Resources "$PACKAGE_DIR/pvz/"
-cp launch.sh "$PACKAGE_DIR/pvz/"
-cp game.gptk "$PACKAGE_DIR/pvz/"
-cp gameinfo.xml "$PACKAGE_DIR/pvz/"
-
-# Instructions for libs
 echo ""
-echo "Packaging complete in ./$PACKAGE_DIR"
-echo "IMPORTANT: You may need to populate '$PACKAGE_DIR/pvz/libs' with ARM64 shared libraries."
-echo "If cross-compiling, copy the necessary .so files there."
-echo "You can zip the 'pvz' folder and the 'launch.sh' (wait, launch.sh usually goes in root of ports?)"
-echo "Standard Portmaster structure:"
-echo "  /roms/ports/pvz/ (all game files)"
-echo "  /roms/ports/pvz.sh (script pointing to the game dir)"
+echo "=== Package Complete ==="
+echo "Output: ${PORTNAME}.zip"
 echo ""
-echo "Correcting structure..."
-
-# Fix structure for Portmaster distribution
-# Usually:
-#   pvz.zip
-#     |-- pvz/ (directory with data)
-#     |-- pvz.sh (launch script)
-
-# But we defined launch.sh INSIDE the dir in our script. 
-# Portmaster often likes: /roms/ports/GameName.sh -> /roms/ports/GameName/launch.sh
-# Let's clean this up to match standard practice.
-# We will put the launch script inside the game dir as launch.sh, and creating a wrapper script ??
-# Or just renaming launch.sh to pvz.sh and putting it outside.
-
-# Re-reading my own launch.sh:
-# GAMEDIR="/$directory/ports/pvz"
-# This implies launch.sh is pvz.sh and is outside? OR it is inside and $directory is resolved?
-# Usually in Portmaster:
-# /roms/ports/MyGame.sh
-# /roms/ports/MyGame/ (data)
-
-# Let's adjust packaging:
-mv "$PACKAGE_DIR/pvz/launch.sh" "$PACKAGE_DIR/pvz.sh"
-
-echo "Final structure ready in $PACKAGE_DIR"
+echo "Structure:"
+find "$OUTPUT_DIR" -type f | head -20
+echo ""
+echo "To submit to Portmaster:"
+echo "  1. Add screenshot.png (gameplay, 640x480 min, 4:3 ratio)"
+echo "  2. Fork https://github.com/PortMaster/PortMaster-New"
+echo "  3. Add $PORTNAME folder to ports/"
+echo "  4. Create Pull Request"

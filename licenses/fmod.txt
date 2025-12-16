@@ -1,0 +1,6 @@
+FMOD Non-Commercial License
+
+FMOD is Copyright (c) Firelight Technologies Pty Ltd.
+
+This port uses FMOD for audio. FMOD is free for non-commercial use.
+For commercial use, please visit https://fmod.com for licensing.

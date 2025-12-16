@@ -1,0 +1,28 @@
+{
+  "version": 2,
+  "name": "plantsvsz.zip",
+  "items": [
+    "Plants Vs Zombies.sh",
+    "plantsvsz"
+  ],
+  "items_opt": null,
+  "attr": {
+    "title": "Plants Vs Zombies",
+    "desc": "Classic tower defense game - protect your home from zombie invasion using plants!",
+    "inst": "Ready to run.",
+    "genres": [
+      "strategy",
+      "tower defense"
+    ],
+    "porter": [
+      "bizkut"
+    ],
+    "image": {},
+    "rtr": true,
+    "runtime": null,
+    "reqs": [],
+    "arch": [
+      "aarch64"
+    ]
+  }
+}
