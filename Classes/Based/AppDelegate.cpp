@@ -34,8 +34,9 @@
         "Don't use AudioEngine and SimpleAudioEngine at the same time. Please just select one in your game!"
 #endif
 
+#include "Scenes/MainMenuScene/MainMenu.h"
+
 #if USE_AUDIO_ENGINE
-#    include "Scenes/MainMenuScene/MainMenu.h"
 #    include "audio/include/AudioEngine.h"
 using namespace cocos2d::experimental;
 #elif USE_SIMPLE_AUDIO_ENGINE
@@ -101,10 +102,6 @@ bool AppDelegate::applicationDidFinishLaunching() {
 
     // load game and user data to runtime
     DataLoader dataLoader;
-
-    // allow play 32 music in parallel
-    // not recommend to enable it
-    //    AudioEngine::setMaxAudioInstance(32);
 
     // create a scene. it's an autorelease object
     auto scene = MainMenu::create();

@@ -17,23 +17,36 @@ void MusicPlayer::playMusic(const std::string& musicName, const bool isControlVo
     auto runtime = Runtime::getInstance();
     auto& resourcePath = runtime->gameData->getResourcePath();
     auto& userSetting = runtime->userData->getUserSetting();
+    
+    auto& musicMap = resourcePath.getMusicPath();
+    auto it = musicMap.find(musicName);
+    if (it == musicMap.end()) {
+        cocos2d::log("MusicPlayer::playMusic: Music not found: %s", musicName.c_str());
+        return;
+    }
 
     if (isControlVolume) {
         if (userSetting.soundEffectVolume > 0) {
             AudioEngine::setVolume(
-                AudioEngine::play2d(resourcePath.getMusicPath().find(musicName)->second),
+                AudioEngine::play2d(it->second),
                 userSetting.soundEffectVolume);
         } else {
             cocos2d::log("soundEffectVolume negative or zero");
         }
     } else {
-        AudioEngine::play2d(resourcePath.getMusicPath().find(musicName)->second);
+        AudioEngine::play2d(it->second);
     }
 }
 
 int MusicPlayer::playMusic(const std::string& musicName, const int) {
     auto& resourcePath = Runtime::getInstance()->gameData->getResourcePath();
-    return AudioEngine::play2d(resourcePath.getMusicPath().find(musicName)->second);
+    auto& musicMap = resourcePath.getMusicPath();
+    auto it = musicMap.find(musicName);
+    if (it == musicMap.end()) {
+        cocos2d::log("MusicPlayer::playMusic: Music not found: %s", musicName.c_str());
+        return -1;
+    }
+    return AudioEngine::play2d(it->second);
 }
 
 int MusicPlayer::changeBackgroundMusic(const string& musicName, bool loop) {
@@ -47,8 +60,15 @@ int MusicPlayer::changeBackgroundMusic(const string& musicName, bool loop) {
     }
     userSetting.backgroundMusic.clear();
 
+    auto& musicMap = resourcePath.getMusicPath();
+    auto it = musicMap.find(musicName);
+    if (it == musicMap.end()) {
+        cocos2d::log("MusicPlayer::changeBackgroundMusic: Music not found: %s", musicName.c_str());
+        return -1;
+    }
+
     // play new background music
-    int AudioID = AudioEngine::play2d(resourcePath.getMusicPath().find(musicName)->second, loop);
+    int AudioID = AudioEngine::play2d(it->second, loop);
     AudioEngine::setVolume(AudioID, userSetting.backgroundMusicVolume);
 
     userSetting.backgroundMusic.push_back(AudioID);

@@ -19,7 +19,6 @@ MainMenu::MainMenu() :
     _runtime(Runtime::getInstance()), _userNameActionParent(nullptr), _userText(nullptr),
     _mouse(nullptr) {
     MusicPlayer::changeBackgroundMusic("mainmusic", true);
-    //    cocos2d::log("play roll_in");
     MusicPlayer::playMusic("roll_in");
 }
 
@@ -31,7 +30,7 @@ bool MainMenu::init() {
     createMainSprite();
     createMouseListener();
     createMainButton();
-    schedule(schedule_selector(MainMenu::curUpdate), 0.05f);  // timer
+    schedule(schedule_selector(MainMenu::curUpdate), 0.05f);
     schedule([this](float) { _runtime->checkAnimationInterval(); }, 1.f, "FPS");
 
     createNewUserDataFileName();
@@ -419,8 +418,10 @@ void MainMenu::createMainButton() {
 }
 
 void MainMenu::createNewUserDataFileName() {
-    if (_runtime->userData->getUserName() == "未命名存档") {
-        menuDataCallBack(nullptr);
+    if (_runtime->userData->getUserName() == "Unnamed") {
+        // Set a default username for new players
+        _runtime->userData->setUserName("Player");
+        _runtime->userData->setIsUpdate(true);
     }
 }
 

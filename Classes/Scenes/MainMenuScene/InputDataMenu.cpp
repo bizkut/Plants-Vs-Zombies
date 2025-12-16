@@ -180,7 +180,7 @@ void InputDataMenu::createButtons(Sprite* sprite, const std::string& Label, cons
                 switch (ID) {
                     case 1: { /* 确定 */
                         if (!_textField->getString().empty() &&
-                            _textField->getString() != "未命名存档") {
+                            _textField->getString() != "Unnamed") {
                             caveData();
                             updateButtonText();
                             this->removeChildByName("_shieldDialogLayer");
@@ -189,7 +189,7 @@ void InputDataMenu::createButtons(Sprite* sprite, const std::string& Label, cons
                         break;
                     }
                     case 2: { /* 取消 */
-                        if (_runtime->userData->getUserName() != "未命名存档") {
+                        if (_runtime->userData->getUserName() != "Unnamed") {
                             this->removeChildByName("_shieldDialogLayer");
                             _inputString.clear();
                         }
@@ -360,7 +360,7 @@ Label* InputDataMenu::onTextFieldDeleteBackward() {
 }
 
 void InputDataMenu::inputNewFileDataName() {
-    if (_runtime->userData->getUserName() == "未命名存档") {
+    if (_runtime->userData->getUserName() == "Unnamed") {
         createShieldLayer();
     }
 }

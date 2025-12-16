@@ -53,7 +53,7 @@ void DataLoader::loadSettings() {
         if (!str.empty()) {
             caveFile.userCaveFileName[i] = str;
         } else {
-            caveFile.userCaveFileName[i] = "未命名存档";
+            caveFile.userCaveFileName[i] = "Unnamed";
         }
     }
 
@@ -216,20 +216,10 @@ void DataLoader::loadImage() {
     auto& resourcePath = _gameData->getResourcePath();
 
     for (auto& path : resourcePath.getImagePath()) {
-        //        cocos2d::log("image Path: %s", path.second.c_str());
-        //         add sprite frame in sync way
         Texture2D* texture = _director->getTextureCache()->addImage(path.second + ".pvr.ccz");
-        //        cocos2d::log("%s", string(path.second + ".pvr.ccz").c_str());
-        SpriteFrameCache::getInstance()->addSpriteFramesWithFile(path.second + ".plist", texture);
-        //        cocos2d::log("%s", string(path.second + ".plist").c_str());
-
-        //        Do not add sprite frame in async way!
-        //        _director->getTextureCache()->addImageAsync(
-        //            path.second + ".pvr.ccz", [=](Texture2D* texture) {
-        //                SpriteFrameCache::getInstance()->addSpriteFramesWithFile(path.second +
-        //                ".plist",
-        //                                                                         texture);
-        //            });
+        if (texture) {
+            SpriteFrameCache::getInstance()->addSpriteFramesWithFile(path.second + ".plist", texture);
+        }
     }
 }
 
@@ -237,7 +227,7 @@ void DataLoader::loadMusic() {
     auto& resourcePath = _gameData->getResourcePath();
 
     for (auto& i : resourcePath.getMusicPath()) {
-        experimental::AudioEngine::preload(i.second, [=](bool isSucceed) {});
+        experimental::AudioEngine::preload(i.second, nullptr);
     }
 }
 
@@ -246,22 +236,20 @@ void DataLoader::loadAnimation() {
     auto& animationData = _gameData->getAnimationData();
 
     for (auto& i : resourcePath.getAnimationPath()) {
-        // store temporary file name
         char JsonName[128], AtlasName[128];
-
-        // convert
         snprintf(JsonName, 128, "resources/Animations/compiled/%s.compiled", (i.second).c_str());
         snprintf(AtlasName, 128, "resources/Animations/reanim/%s.reanim", (i.second).c_str());
-        //        cocos2d::log("JsonName: %s", JsonName);
 
-        // load
         spSkeletonJson* json =
             spSkeletonJson_createWithLoader((spAttachmentLoader*)Cocos2dAttachmentLoader_create(
                 spAtlas_createFromFile(AtlasName, nullptr)));
+        if (!json) continue;
+        
         auto skeletonData = spSkeletonJson_readSkeletonDataFile(json, JsonName);
         spSkeletonJson_dispose(json);
 
-        // insert animation data to map
-        animationData.insert(pair<string, spSkeletonData*>(i.second, skeletonData));
+        if (skeletonData) {
+            animationData.insert(pair<string, spSkeletonData*>(i.second, skeletonData));
+        }
     }
 }

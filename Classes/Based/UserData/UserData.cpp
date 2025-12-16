@@ -7,7 +7,7 @@
 
 #include "UserData.h"
 
-UserData::UserData() : _userName("未命名存档"), _isUpdate(false), _isReadFileLevelData(false) {}
+UserData::UserData() : _userName("Unnamed"), _isUpdate(false), _isReadFileLevelData(false) {}
 
 UserSetting& UserData::getUserSetting() { return _userSetting; }
 
