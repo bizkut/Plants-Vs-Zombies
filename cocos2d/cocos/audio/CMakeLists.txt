@@ -1,4 +1,5 @@
 
+# AudioEngine.cpp is used for all platforms
 set(COCOS_AUDIO_SRC
     audio/AudioEngine.cpp
     )
@@ -114,11 +115,13 @@ elseif(LINUX)
         audio/linux/AudioEngine-linux.h
         )
 
+    # Use FMOD for both x86_64 and ARM64
     set(COCOS_AUDIO_PLATFORM_SRC
         audio/linux/SimpleAudioEngine.cpp
         audio/linux/AudioEngine-linux.h
         audio/linux/AudioEngine-linux.cpp
         )
+    message(STATUS "Audio: Linux build with FMOD")
 
 elseif(APPLE)
     # common

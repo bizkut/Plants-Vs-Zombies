@@ -73,3 +73,102 @@ Here, I made some modifications to the basic classes and drew the corresponding 
 
 ## Contacts
 **Email: gongxi@mail.nankai.edu.cn** <br>
+
+## Portmaster (ARM64 Handhelds)
+This fork includes full support for [Portmaster](https://portmaster.games) on ARM64 handhelds with:
+- **gl4es** for OpenGL → OpenGL ES translation (no X11 required)
+- **FMOD audio** for music and sound effects
+- **gptokeyb** controller support
+
+### Quick Start
+```bash
+# 1. Build ARM64 libraries
+./build_arm64_libs.sh
+
+# 2. Download FMOD (auto-creates account)
+./download_fmod_arm64.sh
+
+# 3. Build and package
+./package_portmaster.sh
+
+# 4. Build gl4es (for KMS/DRM display)
+cd /tmp && git clone https://github.com/ptitSeb/gl4es.git
+cd gl4es && mkdir build && cd build
+cmake .. -DNOX11=ON -DGLX_STUBS=ON -DEGL_WRAPPER=ON -DGBM=ON
+make -j$(nproc)
+cp /tmp/gl4es/lib/libGL.so.1 /path/to/pvz_portmaster/pvz/libs/
+cp /tmp/gl4es/lib/libEGL.so.1 /path/to/pvz_portmaster/pvz/libs/
+```
+
+### Package Structure
+```
+pvz_portmaster/
+├── pvz.sh                    # Launch script (goes to /roms/ports/)
+└── pvz/                      # Game folder (goes to /roms/ports/pvz/)
+    ├── pvz                   # ARM64 binary
+    ├── Resources/            # Game assets
+    ├── libs/
+    │   ├── libGL.so.1        # gl4es (OpenGL → GLES)
+    │   ├── libEGL.so.1       # EGL wrapper
+    │   └── libfmod.so        # FMOD audio
+    ├── game.gptk             # Controller mapping
+    └── gameinfo.xml          # EmulationStation metadata
+```
+
+### Installation on Device
+```bash
+# Via SSH
+scp -r pvz_portmaster/pvz.sh pvz_portmaster/pvz root@DEVICE_IP:/roms/ports/
+```
+
+### Controls (gptokeyb)
+- **D-Pad/Analog**: Mouse movement
+- **A**: Left click
+- **B**: Right click
+- **Start**: Enter
+- **Back**: Escape
+
+### Device Compatibility
+
+This ARM64 build is compatible with the following devices:
+
+| Device | Chipset | Compatible |
+|--------|---------|------------|
+| Anbernic RG353P/V/M/PS | RK3566 | ✅ Yes |
+| Anbernic RG503 | RK3566 | ✅ Yes |
+| Anbernic RG505 | Unisoc T618 | ✅ Yes |
+| Anbernic RG35XX H/Plus/SP | H700 | ✅ Yes |
+| Anbernic RG28XX | H700 | ✅ Yes |
+| Anbernic RG40XX H/V | H700 | ✅ Yes |
+| Anbernic RG CubeXX | RK3566 | ✅ Yes |
+| Powkiddy RGB30 | RK3566 | ✅ Yes |
+| Powkiddy X55 | RK3566 | ✅ Yes |
+| Powkiddy RGB20SX | RK3326 | ✅ Yes |
+| AYANEO Pocket S | Snapdragon G3x Gen 2 | ✅ Yes |
+| Raspberry Pi 4/5 | BCM2711/2712 | ✅ Yes |
+| Orange Pi 5 | RK3588S | ✅ Yes |
+
+**Not Compatible (different architecture):**
+| Device | Reason |
+|--------|--------|
+| Anbernic RG351P/M/V | RK3326 (32-bit OS) |
+| Anbernic RG350/M | MIPS architecture |
+| Miyoo Mini/Plus | ARM32 Sigma Star |
+| PCs/Laptops | x86_64 (requires separate build) |
+
+**Requirements:**
+- 64-bit ARM Linux OS (ROCKNIX, ArkOS, JELOS, Batocera, muOS, Knulli, etc.)
+- OpenGL ES 2.0 support (uses gl4es for OpenGL translation)
+- ~20 MB storage for game + libs
+
+**Included Libraries:**
+- `libGL.so.1` - gl4es (OpenGL → OpenGL ES 2.0 translation)
+- `libEGL.so.1` - EGL wrapper for KMS/DRM output
+- `libfmod.so` - FMOD audio library
+
+> **Graphics:** This build uses gl4es for KMS/DRM display output without X11.
+> The launch script sets `LIBGL_ES=2`, `LIBGL_GL=21`, `LIBGL_FB=4` for proper gl4es operation.
+
+### Audio Support
+This build includes FMOD audio for full sound effects and music.
+The FMOD library is included in the `libs/` folder.

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<gameList>
+  <game>
+    <path>./launch.sh</path>
+    <name>Plants Vs Zombies</name>
+    <desc>Plants vs. Zombies is a 2009 tower defense video game developed and published by PopCap Games.</desc>
+    <image>./cover.png</image>
+    <developer>PopCap Games</developer>
+    <publisher>PopCap Games</publisher>
+    <genre>Strategy</genre>
+  </game>
+</gameList>

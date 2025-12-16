@@ -16,8 +16,13 @@ if(WINDOWS)
   set_target_properties(${target_name} PROPERTIES
     IMPORTED_LOCATION "${platform_spec_path}/lib${lib_name}.lib"
   )
+elseif(LINUX)
+  set_target_properties(${target_name} PROPERTIES
+    IMPORTED_LOCATION "${platform_spec_path}/lib${lib_name}.a"
+  )
 else()
   set_target_properties(${target_name} PROPERTIES
     IMPORTED_LOCATION "${platform_spec_path}/lib${lib_name}.a"
   )
 endif()
+

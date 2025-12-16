@@ -39,7 +39,13 @@ elseif(MACOSX)
     set(platform_spec_path mac)
 elseif(LINUX)
     set(platform_name linux)
-    set(platform_spec_path linux/64-bit)
+    # Detect architecture for Linux
+    if(CMAKE_SYSTEM_PROCESSOR MATCHES "aarch64" OR CMAKE_SYSTEM_PROCESSOR MATCHES "arm64")
+        set(platform_spec_path linux/arm64)
+    else()
+        set(platform_spec_path linux/64-bit)
+    endif()
 endif()
+
 
 set(platform_spec_path "${_path_prefix}${platform_spec_path}")

@@ -12,10 +12,18 @@ add_library(${target_name} STATIC IMPORTED GLOBAL)
 set_target_properties(${target_name} PROPERTIES
   INTERFACE_INCLUDE_DIRECTORIES "${CMAKE_CURRENT_SOURCE_DIR}/include/${platform_name}"
 )
+
 if(LINUX)
-  set_target_properties(${target_name} PROPERTIES
-    IMPORTED_LOCATION "${CMAKE_CURRENT_SOURCE_DIR}/prebuilt/linux/lib${lib_name}.a"
-  )
+  # Detect architecture for Linux
+  if(CMAKE_SYSTEM_PROCESSOR MATCHES "aarch64" OR CMAKE_SYSTEM_PROCESSOR MATCHES "arm64")
+    set_target_properties(${target_name} PROPERTIES
+      IMPORTED_LOCATION "${CMAKE_CURRENT_SOURCE_DIR}/prebuilt/linux/arm64/lib${lib_name}.a"
+    )
+  else()
+    set_target_properties(${target_name} PROPERTIES
+      IMPORTED_LOCATION "${CMAKE_CURRENT_SOURCE_DIR}/prebuilt/linux/lib${lib_name}.a"
+    )
+  endif()
 elseif(WINDOWS)
   set_target_properties(${target_name} PROPERTIES
     IMPORTED_LOCATION "${platform_spec_path}/${lib_name}.lib"
@@ -29,3 +37,4 @@ endif()
 if(IOS OR ANDROID)
   message(FATAL_ERROR "It's a error to use ${lib_name} on iOS or Android")
 endif()
+
